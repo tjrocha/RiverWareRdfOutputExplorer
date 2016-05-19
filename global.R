@@ -247,3 +247,49 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
   return(trueCount/totalCount * 100)
 }
 
+
+#####################################################################################################################################
+# HARDCODED CRSS STANDARD PLOTS
+#####################################################################################################################################
+# FUNCTION TO BUILD THE RESERVOIR ELEVATION EXCEEDANCE PLOTS
+buildResChart <- function (rawRDF, slotName, maxYear, compareOld2New) {
+  usbrBlue <- c("#152C5F", "#244A9F", "#6580BB")
+  usbrSand <- c("#8E6F3F", "#CB9F5B", "#DABB8C")
+  runName <- format(as.Date(rawRDF$meta$create_date),format="%b%Y")
+  rdfXTS <- rdfSlotToXTS(rawRDF, slotName)
+  rdfXtsDecVal <- getTraceMonthVal(rdfXTS,12)
+  rdfXtsDecPctl <- getArrayPctl(rdfXtsDecVal,c(0.1,0.5,0.9))[paste("/",maxYear,sep="")]
+  ggData <- data.frame(Date=index(rdfXtsDecPctl),coredata(rdfXtsDecPctl))
+  ggChartResPctls <- ggplot(ggData, aes(x=Date)) + 
+    geom_line(aes(y = X10., colour=paste(runName, "90th",sep=":")), size = 2, linetype = 3) + 
+    geom_line(aes(y = X50., colour=paste(runName, "50th",sep=":")), size = 2, linetype = 1) + 
+    geom_line(aes(y = X90., colour=paste(runName, "10th",sep=":")), size = 2, linetype = 2) +
+    scale_colour_manual("", breaks = c(paste(runName, "10th",sep=":"), paste(runName, "50th",sep=":"), paste(runName, "90th",sep=":")), 
+                        values = usbrBlue) +
+    labs(title = paste(strsplit(slotName,"\\.")[[1]][1], " EOCY Elevation Exceedance Percentiles",sep = ""), 
+         x = "Year", y = "Lake Elevation (feet above MSL)") +
+    theme(text = element_text(size=20), panel.background = element_rect(fill = "white"), 
+          panel.grid.major = element_line(colour = "gainsboro"),
+          panel.border = element_rect(colour = "gainsboro", fill=NA)) 
+  ggChartResPctls
+  
+  if (compareOld2New){
+    # PROCESS RDF2
+    rdfName2 <- 'oldMPPE.rdf'
+    rawRDF2 <- read.rdf(rdfName2)
+    runName2 <- format(as.Date(rawRDF2$meta$create_date),format="%b%Y")
+    rdfXTS2 <- rdfSlotToXTS(rawRDF2, slotName)
+    minYear <- format(min(index(rdfXtsDecVal)),format="%Y")
+    rdfXtsDecVal2 <- getTraceMonthVal(rdfXTS2,12)
+    rdfXtsDecPctl2 <- getArrayPctl(rdfXtsDecVal2,c(0.1,0.5,0.9))[paste(minYear,"/",maxYear,sep="")]
+    ggData2 <- data.frame(Date=index(rdfXtsDecPctl2),coredata(rdfXtsDecPctl2))
+    ggChartResPctls <- ggChartResPctls + 
+      geom_line(aes(x = ggData2$Date, y = ggData2$X10., colour=paste(runName2, "90th",sep=":")), size = 2, linetype = 3) + 
+      geom_line(aes(x = ggData2$Date, y = ggData2$X50., colour=paste(runName2, "50th",sep=":")), size = 2, linetype = 1) + 
+      geom_line(aes(x = ggData2$Date, y = ggData2$X90., colour=paste(runName2, "10th",sep=":")), size = 2, linetype = 2) +
+      scale_colour_manual("", breaks = c(paste(runName, "10th",sep=":"), paste(runName, "50th",sep=":"), paste(runName, "90th",sep=":"),
+                                         paste(runName2, "10th",sep=":"), paste(runName2, "50th",sep=":"), paste(runName2, "90th",sep=":")),  
+                          values =c(usbrBlue, usbrSand))
+  }
+  ggChartResPctls
+}
