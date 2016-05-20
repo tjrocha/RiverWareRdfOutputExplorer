@@ -172,17 +172,6 @@ exploreTab <- tabItem(
                    selected = "monthly",inline = TRUE),
       sliderInput("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
     ), 
-#     # CDF GRAPH BOX
-#     box(
-#       dygraphOutput("plotRdfCDF"),
-#       br(),
-#       "Note: Click-and-drag to zoom in. Double-click to undo. The Interquartile Range or 25-50-75 ",
-#       "percentile levels are already shown by the shaded range",
-#       sliderInput
-#       ("excChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
-#     ) 
-#   ),
-#   fluidRow(
     # THRESHOLD GRAPH BOX
     box(
       dygraphOutput("plotRdfThreshCheck"),
@@ -237,119 +226,30 @@ reportTab <- tabItem(
    "1. The slots shows here are based on the typical static graphs generated for CRSS outputs. ",
    br(),
    "2. The charts may take a while to generate based on the number of traces in the CRSS run. ",
-   "~3 seconds for the typical 107 traces and ~60 seconds for the occasional 30,000 traces.",
+   "~5 seconds for the typical 107 traces and ~60 seconds for the occasional 30,000 traces.",
    br(),br(),
    fluidRow(
      box(
-       plotOutput("meadStandardGraph")
+       plotOutput("meadStandardGraph"),
+       downloadButton('downloadMeadStandardData', 'Download Data as a CSV file')
      ),
      box(
-       plotOutput("powellStandardGraph")
+       plotOutput("powellStandardGraph"),
+       downloadButton('downloadPowellStandardData', 'Download Data as a CSV file')
      )
    ),
    fluidRow(
      box(
-       
+       plotOutput("surpshortStandardGraph"),
+       downloadButton('downloadSrShortStandardData', 'Download Data as a CSV file')
      ),
      box(
-       
+       plotOutput("elevsStandardGraph"),
+       downloadButton('downloadElevStandardData', 'Download Data as a CSV file')
      )
    )
-#   h2("Data Table"),
-#   "Notes:",
-#   br(),
-#   "1. Data shown below is based on the selected model and slot on the sidebar menu. ",
-#   br(),
-#   "2. Clicking on the Download Data button will save the entire contents of the table as a ",
-#   "comma-separated-variables (CSV) file on your local machine. ",
-#   br(),
-#   "3. Clicking on the column headers will sort your data in ascending/descending order for that particular column. ",
-#   br(),
-#   "4. You may type anything in the search textbox to further filter the results. ",
-#   br(),  
-#   "Search Function Examples: Typing '2010' or '12-31' will filter the data to just ",
-#   "those for 2010 or December-31 for all years respectively. ",
-#   "Typing '1075' will filter data values outside of 1075.00 to 1075.99. ",
-#   br(),
-#   "5. Clicking on the empty boxes below each header shows the range of the data in that particular column ",
-#   "via a slider bar which you may also use to filter the table rows.",
-#   br(),br(),
-#   downloadButton('downloadDataTable', 'Download Data as a CSV file'),
-#   br(),br(),
-#   fluidRow(
-#     div(
-#       style = 'overflow-x: scroll',
-#       DT::dataTableOutput("tableRdfData") #[JR] tableRdfData IS MAPPED TO A TABLE IN THE server SECTION BELOW
-#     )
-#   )
 )
-############################################################################################
-# DEFINE DASHBOARD BODY RDF TREE TAB
-############################################################################################
-# treeTab <- tabItem(
-#   tabName = "tree",
-#   h2("RDF Tree"),
-#   fluidRow(
-#     box(
-#       "Notes:",
-#       br(),br(),
-#       "1. The tree view shown to the right is based on the selected model on the sidebar menu. ",
-#       br(),br(),
-#       "2. Clicking on the chevron buttons next to a folder will expand/collapse the content view ",
-#       "for that particular folder.",
-#       br(),br(),
-#       "3. Clicking on DataObjects > Objects displays a quick view of the available slots for a ",
-#       "given RDF without having to scroll through the slot list on the sidebar menu."
-#     ),
-#     box(
-#       shinyTree("rdfTree")  
-#     )
-#   )
-# )
-############################################################################################
-# DEFINE DASHBOARD BODY REPORTS TAB
-############################################################################################
-# reportsTab <- tabItem(
-#   tabName = "reports",
-#   h2("Reports"),
-#   "Notes:",
-#   br(),
-#   "1. This tab allows the automatic generation and download of some preconfigured graphs and data ",
-#   "tables given the selected RDF and slot on the sidebar menu.",
-#   br(),
-#   "2. Automatic generation of the reports for all the slots in a given RDF will be programmed at a ",
-#   "later time. ",
-#   br(),
-#   "3. This tab will also have options to generate a preconfigured set of graphs and analysis ",
-#   "typicaly produced for the USBR UC & LC operations and planning models. The idea is to ",
-#   "make the report generator smart enough to know from the RDF metadata whether to allow ",
-#   "the generation of 24MS, MTOM, or CRSS reports.",
-#   br(),br(),
-#   fluidRow(
-#     box(
-#       "Using the selected RDF and slot, ",
-#       "generate and download a zip file of the raw time-series, percentile envelope, ",
-#       "and percent exceedance graphs shown on the Graphs tab along with a csv file of the raw",
-#       "data.",
-#       br(),br(),
-#       "The selected graph options on the Graphs tab is used to generate the saved graphs. ",
-#       br(),br(),
-#       uiOutput("reportDownloadButton")
-#     )
-#   ),
-# #  fluidRow(
-# #    box(
-# #      "NOTE: This section generates the USBR UC & LC 5-year probability table based on whether ",
-# #      "the loaded RDF has the Mead.Pool Elevation, Powell.Pool Elevation and Powell.Outflow ",
-# #      "slots. THIS IS CURRENTLY BEING PROGRAMMED...",
-#       br(),
-#       div(
-#         style = 'overflow-x: scroll',
-#         DT::dataTableOutput("tableProbabilityData")
-#       )
-# #    )
-# #  )
-# )
+
 ############################################################################################
 # POPULATE DASHBOARD
 ############################################################################################

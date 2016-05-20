@@ -179,26 +179,6 @@ serverProcessing <- function(input, output, clientData, session){
     )
     label
   })
-#   output$rdfInfoMenu <- renderMenu({
-#     validate(need(is.null(selectedModelName()), ''))
-#     validate(need(selectedModelName() != "", ''))
-#     # Code to generate each of the messageItems here, in a list. This assumes
-#     # that messageData is a data frame with two columns, 'item' and 'message'.
-#     msgs <- apply(getRdfInfo(), 1, function(row) {
-#       messageItem(from = row[["item"]], message = row[["message"]], icon("angle-right"))
-#     })
-#     dropdownMenu(type = "messages", .list = msgs)
-#   })
-#   output$slotInfoMenu <- renderMenu({
-#     validate(need(is.null(selectedRDFSlot()), ''))
-#     validate(need(selectedRDFSlot() != "", ''))
-#     # Code to generate each of the messageItems here, in a list. This assumes
-#     # that messageData is a data frame with two columns, 'item' and 'message'.
-#     msgs <- apply(getSlotInfo(), 1, function(row) {
-#       messageItem(from = row[["item"]], message = row[["message"]], icon("angle-right"))
-#     })
-#     dropdownMenu(type = "messages", .list = msgs)
-#   })
 ################################################################################
 # GENERATE THE GRAPHS HERE
 ################################################################################
@@ -252,35 +232,6 @@ serverProcessing <- function(input, output, clientData, session){
       inputRange[2] = inputRange[2] + 1
     pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
   })
-#   # EXCEEDANCE
-#   output$plotRdfCDF <- renderDygraph({
-#     validateSelectedModel()
-#     validateSelectedSlot()
-#     excDygraph()
-#   })
-#   excDygraph <- reactive({
-#     s1 = paste("X",exceedanceRangeSelected()[1]*100,".",sep="")
-#     s2 = paste("X",exceedanceRangeSelected()[5]*100,".",sep="")
-#     data <- pctExcChartData()
-#     dygraph(data, main = "Percent Exceedance Plot", xlab = "Percent Exceedance (%)") %>%
-#       dySeries(s1, label = "Selected Low Percentile", strokePattern = "dashed", color = "red") %>%
-#       dySeries(s2, label = "Selected High Percentile", strokePattern = "dashed", color = "blue") %>%
-#       dySeries(c("X25.", "X50.", "X75."), label = "Median", strokeWidth = 2, color = "black") %>%
-#       dyOptions(drawGrid = TRUE)  %>%
-#       dyLegend(show = "auto", width = 300) %>%
-#       dyAxis(name="y", label=getChartLabel()) %>%
-#       dyAxis(name="x" , valueFormatter = "function(d){ date = new Date(d); return (date.getFullYear()-1000)/10; }", 
-#              axisLabelFormatter = "function(d){ return Math.round((d.getFullYear()-1000)/10) }" )
-#   })
-#   # EXCEEDANCE LOGIC AND OPTIONS
-#   exceedanceRangeSelected <- reactive({
-#     inputRange <- input$excChartRange
-#     if (inputRange[1] == 25||inputRange[1] == 50 ||inputRange[1] == 75 || inputRange[1] == inputRange[2])
-#       inputRange[1] = inputRange[1] - 1
-#     if (inputRange[2] == 25||inputRange[2] == 50 ||inputRange[2] == 75)
-#       inputRange[2] = inputRange[2] + 1
-#     pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
-#   })
   # THRESHOLD
   output$plotRdfThreshCheck <- renderDygraph({
     validateSelectedModel()
@@ -307,20 +258,6 @@ serverProcessing <- function(input, output, clientData, session){
     annlSumsPctlXts <- apply.yearly(annlSumsXts,toPctls)
     outList <- list(eocyPctlXts,montPctlXts,annlSumsXts,annlSumsPctlXts)
   })
-#   # GENERATE DATA FOR THE EXCEEDANCE PLOT
-#   pctExcChartData <- reactive({
-#     # DEFINE PERCENTILE VALUES OF INTEREST
-#     toPctls <- function(rdfRawData) quantile(rdfRawData, exceedanceRangeSelected())
-#     # SORT EACH COLUMN DESCENDING FOR MONTHLY VALUE CDF PLOTS
-#     sortedDataXts <- apply(rdfRawData(),2,sort,decreasing=TRUE)
-#     # GET PERCENTILE VALUES OF SORTED DATA AT EACH ROW
-#     sortedDataPctlsXts <- apply(sortedDataXts, 1, toPctls)
-#     # FLIP ARRAY FOR PLOTTING
-#     sortedDataPctlsXts <- t(sortedDataPctlsXts[nrow(sortedDataPctlsXts):1,])
-#     sortedDataPctlsXts <- data.frame(cbind(round((1000*array((1:nrow(sortedDataPctlsXts))/nrow(sortedDataPctlsXts)))+1000,0),sortedDataPctlsXts))
-#     sortedDataPctlsXts <- as.xts(sortedDataPctlsXts[-1], order.by = as.Date(paste0(sortedDataPctlsXts$V1,"-01-01",format="%Y-01-01")))
-#     sortedDataPctlsXts
-#   })
   # GENERATE DATA FOR THE THRESHOLD CHECK
   thresoldChartData <- reactive({
     # GENERATE DATA BASED ON THRESHOLD TYPE
@@ -388,91 +325,6 @@ serverProcessing <- function(input, output, clientData, session){
     content = function(filename) 
     {write.csv(data.frame(Date=index(rdfRawData()),coredata(rdfRawData())), filename,row.names = FALSE)}
   )
-#   ################################################################################
-#   # RDF TREE FUNCTIONS  
-#   ################################################################################
-#   # GENERATE RDF TREE ON THE TREE TAB
-#   output$rdfTree <- renderTree({
-#     validateSelectedModel()
-#     rdf <- rdfFile()
-#     metaRdf <- as.list(rdf$meta)
-#     runNames <- c()
-#     for (ithRun in c(1:as.numeric(rdf$meta$number_of_runs))){
-#       runNames <- c(runNames, paste('Run',ithRun,sep=""))
-#     }
-#     names(rdf$runs) <- runNames
-#     runsRdf <- as.list(rdf$runs$Run1)
-#     list(MetaData=metaRdf,DataObjects=runsRdf)
-#   })
-#   ################################################################################
-#   # REPORT GENERATOR FUNCTIONS
-#   ################################################################################
-#   # GENERATE BASIC REPORT PACKAGE
-#   output$reportDownloadButton <- renderUI({
-#     validateSelectedModel()
-#     validateSelectedSlot()
-#     downloadButton('saveReport', 'Generate & Download Graphs and Data')
-#   })
-#   output$saveReport<- downloadHandler(
-#     filename  = function(){
-#       file.remove(dir(paste(getwd(),"/tempReports/",sep=""), pattern = "(.*?)", full.names = TRUE))
-#       paste(format(Sys.time(), "%d%b%Y%I%M%p"),selectedRDFSlot(),".zip", sep='')
-#     },
-#     content = function(filename){
-#       tempDir <- paste(getwd(),"/tempReports/",sep="")
-#       # SAVE GRAPHS ON SERVER
-#       htmlwidgets::saveWidget(tsDygraph(), paste(tempDir, "timeSeriesGraph.html", sep=""))
-#       htmlwidgets::saveWidget(envDygraph(), paste(tempDir, "envelopeGraph.html", sep=""))
-#       htmlwidgets::saveWidget(excDygraph(), paste(tempDir, "pctExceedanceGraph.html", sep=""))
-#       # SAVE DATA TABLE ON SERVER
-#       write.csv(data.frame(Date<-index(rdfRawData()),coredata(rdfRawData())),
-#                 paste(tempDir, "data.csv", sep=""),row.names = FALSE)
-#       # BUILD ZIP FILE
-#       zip(zipfile=filename,files = "tempReports")
-#     },
-#     contentType = "application/zip"
-#   )
-#   # GENERATE UC & LC PROBABILITY TABLE
-#   output$tableProbabilityData <- DT::renderDataTable({
-#     validateSelectedModel()
-#     availableSlots <- listSlots(rdfFile())
-#     requireddSlots<-c("Mead.Pool Elevation","Powell.Pool Elevation","Powell.Outflow")
-#     validate(
-#       need(
-#         all(
-#           requireddSlots %in% availableSlots), 
-#         paste('Loaded RDF does not have the required slots to generate the UC & LC 5-year ',
-#               'probability table. Need Mead.Pool Elevation, Powell.Pool Elevation ',
-#               'and Powell.Outflow...', sep='')
-#       )
-#     )
-#     # Define 5-year range
-#     t1 <- as.numeric(format(as.Date(rdfFile()$runs[[1]]$start), "%Y")) # RW START DATE
-#     t2 <- t1 + 4
-#     tRange <- paste(t1,"/",t2,sep="")
-#     # Get data to process
-#     meadZ <- getTraceMonthVal(rdfSlotToXTS(rdfFile(), 'Mead.Pool Elevation')[tRange], 12)
-#     powellZ <- getTraceMonthVal(rdfSlotToXTS(rdfFile(), 'Powell.Pool Elevation')[tRange], 12)
-#     powellQ <- rdfSlotToXTS(rdfFile(), 'Powell.Outflow')[tRange]
-#     data <- generate5YearTable(meadZ, powellZ, powellQ)
-#     DT::datatable(data, filter = "none",  
-#                   rownames = c(
-#                     'Lake Mead Surplus', 'Lake Mead Normal/ICS Surplus', 'Lake Mead Any Shortage',
-#                     'Lake Mead Tier 1 Shortage', 'Lake Mead Tier 2 Shortage', 'Lake Mead Tier 3 Shortage', 
-#                     'Lake Powell Equalization Balancing', 'Lake Powell Upper Elevation Balancing', 
-#                     'Lake Powell Mid Elevation Balancing', 'Lake Powell Lower Elevation Balancing',
-#                     'Lake Powell > 8.23 MAF Release','Lake Powell = 8.23 MAF Release',
-#                     'Lake Powell < 8.23 MAF Release'
-#                   ),
-#                   colnames = c(t1+1, t1+2, t1+3, t1+4, t1+5),
-#                   caption = paste('This table shows the percentage of traces per year that meet certain ',
-#                                   'thresholds as defined in the 2007 Interim Guidelines. This table is ',
-#                                   'commonly referred to as the 5-year table in the USBR UC and LC regions.',
-#                                   sep=""),
-#                   options = list(pageLength = 15)
-#                   
-#     ) 
-#   })
 ################################################################################
 # GENERATE CRSS STANDARD CHARTS 
 ################################################################################
@@ -483,13 +335,64 @@ serverProcessing <- function(input, output, clientData, session){
     rawRDF
   })
   output$meadStandardGraph <- renderPlot({
-    maxYear <- "2030"
-    meadChart <- buildResChart(rdfRawMppeNew(), 'Mead.Pool Elevation', maxYear, FALSE)
+    meadChart <- buildResChart(rdfRawMppeNew(), 'Mead.Pool Elevation', FALSE)
     print(meadChart)
   })
   output$powellStandardGraph <- renderPlot({
-    maxYear <- "2030"
-    powellChart <- buildResChart(rdfRawMppeNew(), 'Powell.Pool Elevation', maxYear, FALSE)
+    powellChart <- buildResChart(rdfRawMppeNew(), 'Powell.Pool Elevation', FALSE)
     print(powellChart)
   })
+  output$surpshortStandardGraph <- renderPlot({
+    chart <- buildSurpShortChart()
+    print(chart)
+  })
+  output$elevsStandardGraph <- renderPlot({
+    chart <- buildElevChart(rdfRawMppeNew())
+    print(chart)
+  })
+  # GENERATE DOWNLOAD DATA BUTTON ON THE TABLE TAB
+  mppeMeadData <- reactive({
+    rdfXTS <- rdfSlotToXTS(rdfRawMppeNew(), 'Mead.Pool Elevation')
+    rdfXtsDecVal <- getTraceMonthVal(rdfXTS,12)
+    rdfXtsDecPctl <- getArrayPctl(rdfXtsDecVal,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+    rdfXtsDecPctl
+  })
+  mppePowellData <- reactive({
+    rdfXTS <- rdfSlotToXTS(rdfRawMppeNew(), 'Powell.Pool Elevation')
+    rdfXtsDecVal <- getTraceMonthVal(rdfXTS,12)
+    rdfXtsDecPctl <- getArrayPctl(rdfXtsDecVal,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+    rdfXtsDecPctl
+  })
+  surpShortData <- reactive({
+    data <- getSurpShortData()
+    data
+  })
+  elevData <- reactive({
+    data <- getElevData(rdfRawMppeNew())
+    data
+  })
+  output$downloadMeadStandardData <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(data.frame(Date=index(mppeMeadData()),coredata(mppeMeadData())), filename,row.names = FALSE)}
+  )
+  output$downloadPowellStandardData <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(data.frame(Date=index(mppePowellData()),coredata(mppePowellData())), filename,row.names = FALSE)}
+  )
+  output$downloadSrShortStandardData <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(surpShortData(), filename,row.names = FALSE)}
+  )
+  output$downloadElevStandardData <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(elevData(), filename,row.names = FALSE)}
+  )
 }
