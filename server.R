@@ -17,14 +17,11 @@
 rm(list=ls())
 library(shiny)
 library(shinydashboard)
-library(shinyTree)
 library(dygraphs)
 library(DT)
 library(xts)
 library(zoo)
 library(RWDataPlot)
-library(ggplot2)
-library(scales)
 source('global.R')
 ############################################################################################
 # SERVER SIDE FUNCTIONS, METHODS, AND PROCESSING
@@ -218,7 +215,7 @@ serverProcessing <- function(input, output, clientData, session){
       dySeries(c("25%", "50%", "75%"), label = "Median", strokeWidth = 2, color = "black") %>%
       dyOptions(drawGrid = TRUE) %>%
       dyAxis(name="y", label=getChartLabel()) %>%
-      dyLegend(show = "auto", width = 300)
+      dyLegend(labelsDiv = "plotRdfEnvLegend")
   })
   # ENVELOPE LOGIC AND OPTIONS
   envelopeAggSelected <- reactive({
@@ -239,7 +236,7 @@ serverProcessing <- function(input, output, clientData, session){
     data <- thresoldChartData()
     dygraph(data, main = "Percent Of Traces That Meet A Threshold") %>%
       dyOptions(drawGrid = TRUE)  %>%
-      dyLegend(show = "auto", width = 300) 
+      dyLegend(labelsDiv = "plotRdfThreshCheckLegend")
   })
 ################################################################################
 # GENERATE CHART DATA 
@@ -329,70 +326,96 @@ serverProcessing <- function(input, output, clientData, session){
 # GENERATE CRSS STANDARD CHARTS 
 ################################################################################
   # READ THE MPPE DATA FROM RDF
-  rdfRawMppeNew <- reactive({
-    rdfName <- 'newMPPE.rdf'
-    rawRDF <- read.rdf(rdfName)
-    rawRDF
+#   rdfRawMppeNew <- reactive({
+#     rdfName <- 'newMPPE.rdf'
+#     rawRDF <- read.rdf(rdfName)
+#     rawRDF
+#   })
+  runName <- reactive({
+    format(as.Date(newMppeData$meta$create_date),format="%b%Y")
   })
-  output$meadStandardGraph <- renderPlot({
-    meadChart <- buildResChart(rdfRawMppeNew(), 'Mead.Pool Elevation', FALSE)
-    print(meadChart)
+  output$meadStandardGraphXts <- renderDygraph({
+    data <- getResXtsData('Mead.Pool Elevation')
+    graph <- dygraph(data, main = "Lake Mead EOCY Elevation Percentiles") %>%
+      dySeries("10%", label = "10th", strokeWidth = 3, strokePattern = "dotted", color = "#152C5F") %>%
+      dySeries("50%", label = "50th", strokeWidth = 3, color = "#244A9F") %>%
+      dySeries("90%", label = "90th", strokeWidth = 3, strokePattern = "dashed", color = "#6580BB") %>%
+      dyOptions(drawGrid = TRUE) %>%
+      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+      dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
+      dyAxis(name="x", label="Year", 
+             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+      dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
   })
-  output$powellStandardGraph <- renderPlot({
-    powellChart <- buildResChart(rdfRawMppeNew(), 'Powell.Pool Elevation', FALSE)
-    print(powellChart)
+  output$powellStandardGraphXts <- renderDygraph({
+    data <- getResXtsData('Powell.Pool Elevation')
+    graph <- dygraph(data, main = "Lake Powell EOCY Elevation Percentiles") %>%
+      dySeries("10%", label = "10th", strokeWidth = 3, strokePattern = "dotted", color = "#152C5F") %>%
+      dySeries("50%", label = "50th", strokeWidth = 3, color = "#244A9F") %>%
+      dySeries("90%", label = "90th", strokeWidth = 3, strokePattern = "dashed", color = "#6580BB") %>%
+      dyOptions(drawGrid = TRUE) %>%
+      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+      dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
+      dyAxis(name="x", label="Year", 
+             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+      dyLegend(labelsDiv = "powellStandardGraphXtsLegend")
   })
-  output$surpshortStandardGraph <- renderPlot({
-    chart <- buildSurpShortChart()
-    print(chart)
+  output$surpshortStandardGraphXts <- renderDygraph({
+    data <- getSurpShortXtsData()
+    graph <- dygraph(data, main = paste("Lower Basin Shortages by Tier:",runName(),"CRSS Run",sep=" ")) %>%
+      dySeries("shortPctg", label = "Shortage", strokeWidth = 3, color = "#244A9F") %>%
+      dySeries("surpPctg", label = "Surplus", strokeWidth = 3, color = "#CB9F5B") %>%
+      dySeries("short1Pctg", label = "Tier 1 Shortage", strokeWidth = 1, strokePattern = "dashed", color = "#152C5F") %>%
+      dySeries("short2Pctg", label = "Tier 2 Shortage", strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
+      dySeries("short3Pctg", label = "Tier 3 Shortage", strokeWidth = 1, strokePattern = "dashed", color = "#6580BB") %>%
+      dyOptions(drawGrid = TRUE) %>%
+      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+      dyAxis(name="y", label="Percent of traces (%)") %>%
+      dyAxis(name="x", label="Year", 
+             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+      dyLegend(labelsDiv = "surpshortStandardGraphXtsLegend")
   })
-  output$elevsStandardGraph <- renderPlot({
-    chart <- buildElevChart(rdfRawMppeNew())
-    print(chart)
+  output$elevsStandardGraphXts <- renderDygraph({
+    data <- getElevXtsData()
+    graph <- dygraph(data, main = paste("Reservoir Elevation Exceedance:",runName(),"CRSS Run",sep=" ")) %>%
+      dySeries("mead1075ElevExc", label = "Mead < 1,075", strokeWidth = 3, color = "#244A9F") %>%
+      dySeries("mead1025ElevExc", label = "Mead < 1,025", strokeWidth = 3, color = "#152C5F") %>%
+      dySeries("mead1000ElevExc", label = "Mead < 1,000", strokeWidth = 3, color = "#244A9F") %>%
+      dySeries("powl3490ElevExc", label = "Powell < 3,490", strokeWidth = 3, color = "#CB9F5B") %>%
+      dyOptions(drawGrid = TRUE) %>%
+      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+      dyAxis(name="y", label="Percent of traces (%)") %>%
+      dyAxis(name="x", label="Year", 
+             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+      dyLegend(labelsDiv = "elevsStandardGraphXtsLegend")
   })
-  # GENERATE DOWNLOAD DATA BUTTON ON THE TABLE TAB
-  mppeMeadData <- reactive({
-    rdfXTS <- rdfSlotToXTS(rdfRawMppeNew(), 'Mead.Pool Elevation')
-    rdfXtsDecVal <- getTraceMonthVal(rdfXTS,12)
-    rdfXtsDecPctl <- getArrayPctl(rdfXtsDecVal,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-    rdfXtsDecPctl
-  })
-  mppePowellData <- reactive({
-    rdfXTS <- rdfSlotToXTS(rdfRawMppeNew(), 'Powell.Pool Elevation')
-    rdfXtsDecVal <- getTraceMonthVal(rdfXTS,12)
-    rdfXtsDecPctl <- getArrayPctl(rdfXtsDecVal,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-    rdfXtsDecPctl
-  })
-  surpShortData <- reactive({
-    data <- getSurpShortData()
-    data
-  })
-  elevData <- reactive({
-    data <- getElevData(rdfRawMppeNew())
-    data
-  })
+# GENERATE DOWNLOAD DATA BUTTON ON THE REPORTS TAB
   output$downloadMeadStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
     content = function(filename) 
-    {write.csv(data.frame(Date=index(mppeMeadData()),coredata(mppeMeadData())), filename,row.names = FALSE)}
+    {write.csv(data.frame(Date=index(getResXtsData('Mead.Pool Elevation')),coredata(getResXtsData('Mead.Pool Elevation'))), filename,row.names = FALSE)}
   )
   output$downloadPowellStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
     content = function(filename) 
-    {write.csv(data.frame(Date=index(mppePowellData()),coredata(mppePowellData())), filename,row.names = FALSE)}
+    {write.csv(data.frame(Date=index(getResXtsData('Powell.Pool Elevation')),coredata(getResXtsData('Powell.Pool Elevation'))), filename,row.names = FALSE)}
   )
   output$downloadSrShortStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
     content = function(filename) 
-    {write.csv(surpShortData(), filename,row.names = FALSE)}
+    {write.csv(data.frame(Date=index(getSurpShortXtsData()),coredata(getSurpShortXtsData())), filename,row.names = FALSE)}
   )
   output$downloadElevStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
     content = function(filename) 
-    {write.csv(elevData(), filename,row.names = FALSE)}
+    {write.csv(data.frame(Date=index(getElevXtsData()),coredata(getElevXtsData())), filename,row.names = FALSE)}
   )
 }

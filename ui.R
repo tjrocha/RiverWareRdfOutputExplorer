@@ -17,14 +17,11 @@
 rm(list=ls())
 library(shiny)
 library(shinydashboard)
-library(shinyTree)
 library(dygraphs)
 library(DT)
 library(xts)
 library(zoo)
 library(RWDataPlot)
-library(ggplot2)
-library(scales)
 source('global.R')
 ############################################################################################
 # DEFINE DASHBOARD HEADER
@@ -165,6 +162,8 @@ exploreTab <- tabItem(
     box(
       dygraphOutput("plotRdfEnv"),
       br(),
+      textOutput("plotRdfEnvLegend"),
+      br(),
       "Note: Click-and-drag to zoom in. Double-click to undo. The Interquartile Range or 25-50-75 ",
       "percentile levels are already shown by the shaded range",
       radioButtons("envChartType", label = "Select aggregation: ", 
@@ -175,6 +174,8 @@ exploreTab <- tabItem(
     # THRESHOLD GRAPH BOX
     box(
       dygraphOutput("plotRdfThreshCheck"),
+      br(),
+      textOutput("plotRdfThreshCheckLegend"),
       br(),
       "Note: Click-and-drag to zoom in. Double-click to undo. Select a data aggregation scheme ",
       "and a threshold to compare the data against",
@@ -230,22 +231,35 @@ reportTab <- tabItem(
    br(),br(),
    fluidRow(
      box(
-       plotOutput("meadStandardGraph"),
+       dygraphOutput("meadStandardGraphXts"),
+       br(),
+       textOutput("meadStandardGraphXtsLegend"),
+       br(),
        downloadButton('downloadMeadStandardData', 'Download Data as a CSV file')
      ),
      box(
-       plotOutput("powellStandardGraph"),
+       dygraphOutput("powellStandardGraphXts"),
+       br(),
+       textOutput("powellStandardGraphXtsLegend"),
+       br(),
        downloadButton('downloadPowellStandardData', 'Download Data as a CSV file')
      )
    ),
    fluidRow(
      box(
-       plotOutput("surpshortStandardGraph"),
+       dygraphOutput("surpshortStandardGraphXts"),
+       br(),
+       textOutput("surpshortStandardGraphXtsLegend"),
+       br(),
        downloadButton('downloadSrShortStandardData', 'Download Data as a CSV file')
      ),
      box(
-       plotOutput("elevsStandardGraph"),
+       dygraphOutput("elevsStandardGraphXts"),
+       br(),
+       textOutput("elevsStandardGraphXtsLegend"),
+       br(),
        downloadButton('downloadElevStandardData', 'Download Data as a CSV file')
+       
      )
    )
 )
