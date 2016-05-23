@@ -392,7 +392,7 @@ serverProcessing <- function(input, output, clientData, session){
       dyAxis(name="y", label="Percent of traces (%)") %>%
       dyAxis(name="x", label="Year", 
              valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+             axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
       dyLegend(labelsDiv = "surpshortStandardGraphXtsLegend")
   })
   output$elevsStandardGraphXts <- renderDygraph({
@@ -407,7 +407,7 @@ serverProcessing <- function(input, output, clientData, session){
       dyAxis(name="y", label="Percent of traces (%)") %>%
       dyAxis(name="x", label="Year", 
              valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+             axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
       dyLegend(labelsDiv = "elevsStandardGraphXtsLegend")
   })
 # GENERATE DOWNLOAD DATA BUTTON ON THE REPORTS TAB

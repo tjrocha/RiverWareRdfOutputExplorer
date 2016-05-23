@@ -24,6 +24,10 @@ load('oldMPPE.rds')
 load('newMPPE.rds')
 load('oldSystemConditions.rds')
 load('newSystemConditions.rds')
+load('standardResPlotData.rds')
+load('standardSurpShortPlotData.rds')
+load('standardMeadPlotData.rds')
+load('standardPowellPlotData.rds')
 # ----------------------------------------------------------------------------
 # **************************  rdfSlotToXTS  **********************************
 # ----------------------------------------------------------------------------
@@ -354,32 +358,33 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
 getSurpShortXtsData <- function() {
 #   rdfName <- 'newSystemConditions.rdf'
 #   rawRDF <- read.rdf(rdfName)
-  runName <- format(as.Date(newSysCondData$meta$create_date),format="%b%Y")
-  
-  surpPctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBSurplusConditions')
-  surpPctg <- surpPctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  surpPctg <- getArrayThresholdExceedance(surpPctg, 1, 'EQ')
-
-  shortPctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageConditions')
-  shortPctg <- shortPctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  shortPctg <- getArrayThresholdExceedance(shortPctg, 1, 'EQ')
-  
-  short1Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep1')
-  short1Pctg <- short1Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  short1Pctg <- getArrayThresholdExceedance(short1Pctg, 1, 'EQ')
-  
-  short2Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep2')
-  short2Pctg <- short2Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  short2Pctg <- getArrayThresholdExceedance(short2Pctg, 1, 'EQ')
-  
-  short3Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep3')
-  short3Pctg <- short3Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  short3Pctg <- getArrayThresholdExceedance(short3Pctg, 1, 'EQ')
-  
-  dTab <- merge(shortPctg,surpPctg)
-  dTab <- merge(dTab,short1Pctg)
-  dTab <- merge(dTab,short2Pctg)
-  dTab <- merge(dTab,short3Pctg)
+#   runName <- format(as.Date(newSysCondData$meta$create_date),format="%b%Y")
+#   
+#   surpPctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBSurplusConditions')
+#   surpPctg <- surpPctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   surpPctg <- getArrayThresholdExceedance(surpPctg, 1, 'EQ')
+# 
+#   shortPctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageConditions')
+#   shortPctg <- shortPctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   shortPctg <- getArrayThresholdExceedance(shortPctg, 1, 'EQ')
+#   
+#   short1Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep1')
+#   short1Pctg <- short1Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   short1Pctg <- getArrayThresholdExceedance(short1Pctg, 1, 'EQ')
+#   
+#   short2Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep2')
+#   short2Pctg <- short2Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   short2Pctg <- getArrayThresholdExceedance(short2Pctg, 1, 'EQ')
+#   
+#   short3Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep3')
+#   short3Pctg <- short3Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   short3Pctg <- getArrayThresholdExceedance(short3Pctg, 1, 'EQ')
+#   
+#   dTab <- merge(shortPctg,surpPctg)
+#   dTab <- merge(dTab,short1Pctg)
+#   dTab <- merge(dTab,short2Pctg)
+#   dTab <- merge(dTab,short3Pctg)
+  dTab <- standardSurpShortPlotData[[1]]
   dTab
 }
 # buildSurpShortChart <- function() {
@@ -447,25 +452,29 @@ getSurpShortXtsData <- function() {
 getResXtsData <- function(resName){
 #   rdfName <- 'newMPPE.rdf'
 #   rawRDF <- read.rdf(rdfName)
-  rdfXts <- rdfSlotToXTS(newMppeData, resName)
-  rdfXts <- getTraceMonthVal(rdfXts,12)
-  rdfXts <- getArrayPctl(rdfXts,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+  if (resName == "mead")
+    rdfXts <- standardMeadPlotData[[1]]
+  else
+    rdfXts <- standardPowellPlotData[[1]]
+#   rdfXts <- getTraceMonthVal(rdfXts,12)
+#   rdfXts <- getArrayPctl(rdfXts,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
   rdfXts
 }
 getElevXtsData <- function() {
 #   rdfName <- 'newMPPE.rdf'
 #   rawRDF <- read.rdf(rdfName)
-  runName <- format(as.Date(newMppeData$meta$create_date),format="%b%Y")
-  rdfXTS <- rdfSlotToXTS(newMppeData, 'Mead.Pool Elevation')
-  mead1075ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1075, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  mead1025ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1025, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  mead1000ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1000, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-  rdfXTS <- rdfSlotToXTS(newMppeData, 'Powell.Pool Elevation')
-  powl3490ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 3490, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   runName <- format(as.Date(newMppeData$meta$create_date),format="%b%Y")
+#   rdfXTS <- rdfSlotToXTS(newMppeData, 'Mead.Pool Elevation')
+#   mead1075ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1075, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   mead1025ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1025, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   mead1000ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1000, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+#   rdfXTS <- rdfSlotToXTS(newMppeData, 'Powell.Pool Elevation')
+#   powl3490ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 3490, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
 
-  dTab <- merge(mead1075ElevExc,mead1025ElevExc)
-  dTab <- merge(dTab,mead1000ElevExc)
-  dTab <- merge(dTab,powl3490ElevExc)
+#   dTab <- merge(mead1075ElevExc,mead1025ElevExc)
+#   dTab <- merge(dTab,mead1000ElevExc)
+#   dTab <- merge(dTab,powl3490ElevExc)
+  dTab <- standardResPlotData[[1]]
   dTab
 }
 # buildElevChart <- function(mppeRDF) {
