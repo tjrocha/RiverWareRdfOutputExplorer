@@ -40,11 +40,16 @@ serverProcessing <- function(input, output, clientData, session){
   })
   # READ THE RDF FILE
   rdfFile <- reactive({
-    rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
-    if (!is.null(input$rdfFileIn) && selectedModelName() == input$rdfFileIn$name){
-      rdfFileName <- input$rdfFileIn$datapath
-    }
-    rawRDF <- read.rdf(rdfFileName)
+#     rdfFileName <- paste(selectedModelName(),".rdf",sep="")#'MTOM.rdf' #'TWS_DNFcurrent.rdf'
+#     if (!is.null(input$rdfFileIn) && selectedModelName() == input$rdfFileIn$name){
+#       rdfFileName <- input$rdfFileIn$datapath
+#     }
+#     rawRDF <- read.rdf(rdfFileName)
+    rdfInt <- as.numeric(strsplit(selectedModelName(),split="\\.")[[1]][1])
+    if (rdfInt == 1)
+      rawRDF <- newMppeData
+    else 
+      rawRDF <- oldMppeData
     rawRDF
   })
   # READ THE SLOT DATA FROM RDF
@@ -73,7 +78,7 @@ serverProcessing <- function(input, output, clientData, session){
     if (is.null(input$rdfFileIn)){
       selectInput(
         "selectedModel", "1. Select an RDF", 
-        c(Choose="", "newMPPE")
+        c(Choose="", "1. Current Results", "2. Previous Results")
       )
     }
     else{
@@ -224,9 +229,9 @@ serverProcessing <- function(input, output, clientData, session){
   envelopeRangeSelected <- reactive({
     inputRange <- input$envChartRange
     if (inputRange[1] == 25||inputRange[1] == 50 ||inputRange[1] == 75 || inputRange[1] == inputRange[2])
-      inputRange[1] = inputRange[1] - 1
+      inputRange[1] = inputRange[1] - 0.01
     if (inputRange[2] == 25||inputRange[2] == 50 ||inputRange[2] == 75)
-      inputRange[2] = inputRange[2] + 1
+      inputRange[2] = inputRange[2] + 0.01
     pctlRange <- c(inputRange[1] / 100, 0.25, 0.50, 0.75, inputRange[2] / 100)
   })
   # THRESHOLD
@@ -242,6 +247,18 @@ serverProcessing <- function(input, output, clientData, session){
 # GENERATE CHART DATA 
 ################################################################################
   # GENERATE STATS FOR THE ENVELOPE CHART
+  output$downloadEnvelopeAggSelectedData <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(data.frame(Date=index(envelopeAggSelected()),coredata(envelopeAggSelected())), filename,row.names = FALSE)}
+  )
+  output$downloadThresoldChartDataData <- downloadHandler(
+    filename = function() 
+    {paste('temp',Sys.time(),'.csv', sep='')},
+    content = function(filename) 
+    {write.csv(data.frame(Date=index(thresoldChartData()),coredata(thresoldChartData())), filename,row.names = FALSE)}
+  )
   envelopeChartData <- reactive({
     # DEFINE PERCENTILE VALUES OF INTEREST
     toPctls <- function(rdfRawData) quantile(rdfRawData, envelopeRangeSelected(), na.rm=TRUE)

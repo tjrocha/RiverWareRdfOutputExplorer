@@ -135,8 +135,8 @@ exploreTab <- tabItem(
   tabName = "explore",
   fluidRow(
     box(
-      uiOutput("selectModelName"),
-      uiOutput("resettableFileInput")
+      uiOutput("selectModelName")
+      #uiOutput("resettableFileInput")
     ),
     box(
       uiOutput("selectSlotName") 
@@ -169,7 +169,9 @@ exploreTab <- tabItem(
       radioButtons("envChartType", label = "Select aggregation: ", 
                    c("EOCY" = "eocy", "Monthly"="monthly","CY Sum"="cysum"),
                    selected = "monthly",inline = TRUE),
-      sliderInput("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90))
+      sliderInput("envChartRange", label = "Envelope range: ",min = 0, max = 100, value = c(10, 90)),
+      br(),
+      downloadButton('downloadEnvelopeAggSelectedData', 'Download Data as a CSV file')
     ), 
     # THRESHOLD GRAPH BOX
     box(
@@ -185,7 +187,9 @@ exploreTab <- tabItem(
       radioButtons("threshCompType", label = "Select threshold comparison: ", 
                    c("Greater Than" = "GT", "Less Than"="LT"),
                    selected = "LT",inline = TRUE),
-      textInput("threshValue", "Input threshold value(s): (Example: 1075,1050,1025)", "0")
+      textInput("threshValue", "Input threshold value(s): (Example: 1075,1050,1025)", "0"),
+      br(),
+      downloadButton('downloadThresoldChartDataData', 'Download Data as a CSV file')
     ) 
   ),
   h2("Data Table"),
