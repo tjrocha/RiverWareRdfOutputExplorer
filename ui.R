@@ -244,6 +244,7 @@ reportTab <- tabItem(
        textOutput("meadStandardGraphXtsLegend"),
        checkboxInput("meadStandardCompare", "Compare with previous run", FALSE),
        downloadButton('downloadMeadStandardData', 'Download Data as a CSV file')
+       # downloadButton('downloadMeadChart', 'Download Chart as HTML file')
      ),
      box(
        dygraphOutput("powellStandardGraphXts"),

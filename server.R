@@ -362,8 +362,8 @@ serverProcessing <- function(input, output, clientData, session){
         dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
         dyAxis(name="x", label="Year", 
-               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+               valueFormatter = 'function(d){date = new Date(d); return date.getFullYear();}', 
+               axisLabelFormatter = 'function(d){date = new Date(d); return (date.getFullYear()-1);}') %>%
         dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
       #c("#8E6F3F", "#CB9F5B", "#DABB8C")
     }
@@ -377,8 +377,8 @@ serverProcessing <- function(input, output, clientData, session){
         dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
         dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
         dyAxis(name="x", label="Year", 
-               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+               valueFormatter = 'function(d){date = new Date(d); return date.getFullYear();}', 
+               axisLabelFormatter = 'function(d){date = new Date(d); return (date.getFullYear()-1);}') %>%
         dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
     }
   })
@@ -396,8 +396,8 @@ serverProcessing <- function(input, output, clientData, session){
         dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
         dyAxis(name="x", label="Year", 
-               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+               valueFormatter = 'function(d){date = new Date(d); return date.getFullYear();}', 
+               axisLabelFormatter = 'function(d){date = new Date(d); return (date.getFullYear()-1);}') %>%
         dyLegend(labelsDiv = "powellStandardGraphXtsLegend")
     }
     else {
@@ -410,8 +410,8 @@ serverProcessing <- function(input, output, clientData, session){
         dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
         dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
         dyAxis(name="x", label="Year", 
-               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+               valueFormatter = 'function(d){date = new Date(d); return date.getFullYear();}', 
+               axisLabelFormatter = 'function(d){date = new Date(d); return (date.getFullYear()-1);}') %>%
         dyLegend(labelsDiv = "powellStandardGraphXtsLegend")
     }
   })
@@ -557,4 +557,11 @@ serverProcessing <- function(input, output, clientData, session){
       }      
     }
   )
+#   output$downloadMeadChart <- downloadHandler(
+#     filename = function() 
+#     {paste('MeadChart.html', sep='')},
+#     content = function(filename) {
+#       htmlwidgets::saveWidget(dygraphOutput("meadStandardGraphXts"),'MeadChart.html')
+#     }
+#   )
 }
