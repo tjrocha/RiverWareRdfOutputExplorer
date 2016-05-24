@@ -228,24 +228,28 @@ reportTab <- tabItem(
    h2("Typical CRSS Results"),
    "Notes:",
    br(),
-   "1. The slots shows here are based on the typical static graphs generated for CRSS outputs. ",
+   "1. The slots shown here are based on the typical graphs generated for CRSS outputs. ",
    br(),
-   "2. The charts may take a while to generate based on the number of traces in the CRSS run. ",
-   "~5 seconds for the typical 107 traces and ~60 seconds for the occasional 30,000 traces.",
+   "2. Zoom in by clicking-and-dragging a range within each plot. Double-click to unzoom.",
+   br(),
+   "3. You may compare results from the most recent CRSS run against the previous run by ",
+   "toggling the check box under each plot.",
+   br(),
+   "4. Click on the Download Data button to donwload the underlying data shown in each plot.",
    br(),br(),
    fluidRow(
      box(
        dygraphOutput("meadStandardGraphXts"),
        br(),
        textOutput("meadStandardGraphXtsLegend"),
-       br(),
+       checkboxInput("meadStandardCompare", "Compare with previous run", FALSE),
        downloadButton('downloadMeadStandardData', 'Download Data as a CSV file')
      ),
      box(
        dygraphOutput("powellStandardGraphXts"),
        br(),
        textOutput("powellStandardGraphXtsLegend"),
-       br(),
+       checkboxInput("powellStandardCompare", "Compare with previous run", FALSE),
        downloadButton('downloadPowellStandardData', 'Download Data as a CSV file')
      )
    ),
@@ -254,14 +258,14 @@ reportTab <- tabItem(
        dygraphOutput("surpshortStandardGraphXts"),
        br(),
        textOutput("surpshortStandardGraphXtsLegend"),
-       br(),
+       checkboxInput("surpShortStandardCompare", "Compare with previous run", FALSE),
        downloadButton('downloadSrShortStandardData', 'Download Data as a CSV file')
      ),
      box(
        dygraphOutput("elevsStandardGraphXts"),
        br(),
        textOutput("elevsStandardGraphXtsLegend"),
-       br(),
+       checkboxInput("elevsStandardCompare", "Compare with previous run", FALSE),
        downloadButton('downloadElevStandardData', 'Download Data as a CSV file')
        
      )

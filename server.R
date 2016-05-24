@@ -65,11 +65,11 @@ serverProcessing <- function(input, output, clientData, session){
     # 6. Storage.mode() - convert char values in the XTS matrix to numeric
     rdf <- as.xts(read.zoo(data.frame(cbind(tArray,rdfSlotToMatrix(rawRDF, selectedRDFSlot())))),na.rm=TRUE)
     storage.mode(rdf) <- "numeric"
-    runNames <- c()
+    newRunNames <- c()
     for (ithRun in c(1:as.numeric(rawRDF$meta$number_of_runs))){
-      runNames <- c(runNames, paste('Trace',ithRun,sep=""))
+      newRunNames <- c(newRunNames, paste('Trace',ithRun,sep=""))
     }
-    names(rdf) <- runNames
+    names(rdf) <- newRunNames
     rdf
   })
   # GENERATE THE MODEL SELECTION DROP DOWN LIST
@@ -77,8 +77,8 @@ serverProcessing <- function(input, output, clientData, session){
     input$rdfFileIn
     if (is.null(input$rdfFileIn)){
       selectInput(
-        "selectedModel", "1. Select an RDF", 
-        c(Choose="", "1. Current Results", "2. Previous Results")
+        "selectedModel", "1. Select a Run", 
+        c(Choose="", paste("1.",newRunName(), "CRSS Run",sep=" "), paste("2.",oldRunName(), "CRSS Run",sep=" "))
       )
     }
     else{
@@ -342,97 +342,219 @@ serverProcessing <- function(input, output, clientData, session){
 ################################################################################
 # GENERATE CRSS STANDARD CHARTS 
 ################################################################################
-  # READ THE MPPE DATA FROM RDF
-#   rdfRawMppeNew <- reactive({
-#     rdfName <- 'newMPPE.rdf'
-#     rawRDF <- read.rdf(rdfName)
-#     rawRDF
-#   })
-  runName <- reactive({
+  newRunName <- reactive({
     format(as.Date(newMppeData$meta$create_date),format="%b%Y")
   })
+  oldRunName <- reactive({
+    format(as.Date(oldMppeData$meta$create_date),format="%b%Y")
+  })
   output$meadStandardGraphXts <- renderDygraph({
-    data <- getResXtsData('Mead.Pool Elevation')
-    graph <- dygraph(data, main = "Lake Mead EOCY Elevation Percentiles") %>%
-      dySeries("10%", label = "10th", strokeWidth = 3, strokePattern = "dotted", color = "#152C5F") %>%
-      dySeries("50%", label = "50th", strokeWidth = 3, color = "#244A9F") %>%
-      dySeries("90%", label = "90th", strokeWidth = 3, strokePattern = "dashed", color = "#6580BB") %>%
-      dyOptions(drawGrid = TRUE) %>%
-      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
-      dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
-      dyAxis(name="x", label="Year", 
-             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
-      dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
+    if(input$meadStandardCompare){
+      data <- getResXtsData('mead','combined')
+      graph <- dygraph(data, main = "Lake Mead EOCY Elevation Percentiles") %>%
+        dySeries("X10.", label = paste(newRunName(), " 10th", sep=""), strokeWidth = 3, strokePattern = "dotted", color = "#244A9F") %>%
+        dySeries("X50.", label = paste(newRunName(), " 50th", sep=""), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("X90.", label = paste(newRunName(), " 90th", sep=""), strokeWidth = 3, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("X10..1", label = paste(oldRunName(), " 10th", sep=""), strokeWidth = 3, strokePattern = "dotted", color = "#CB9F5B") %>%
+        dySeries("X50..1", label = paste(oldRunName(), " 50th", sep=""), strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("X90..1", label = paste(oldRunName(), " 90th", sep=""), strokeWidth = 3, strokePattern = "dashed", color = "#CB9F5B") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+        dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
+      #c("#8E6F3F", "#CB9F5B", "#DABB8C")
+    }
+    else {
+      data <- getResXtsData('mead','new')
+      graph <- dygraph(data, main = "Lake Mead EOCY Elevation Percentiles") %>%
+        dySeries("10%", label = "10th", strokeWidth = 3, strokePattern = "dotted", color = "#244A9F") %>%
+        dySeries("50%", label = "50th", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("90%", label = "90th", strokeWidth = 3, strokePattern = "dashed", color = "#244A9F") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+        dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+        dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
+    }
   })
   output$powellStandardGraphXts <- renderDygraph({
-    data <- getResXtsData('Powell.Pool Elevation')
-    graph <- dygraph(data, main = "Lake Powell EOCY Elevation Percentiles") %>%
-      dySeries("10%", label = "10th", strokeWidth = 3, strokePattern = "dotted", color = "#152C5F") %>%
-      dySeries("50%", label = "50th", strokeWidth = 3, color = "#244A9F") %>%
-      dySeries("90%", label = "90th", strokeWidth = 3, strokePattern = "dashed", color = "#6580BB") %>%
-      dyOptions(drawGrid = TRUE) %>%
-      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
-      dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
-      dyAxis(name="x", label="Year", 
-             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-             axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
-      dyLegend(labelsDiv = "powellStandardGraphXtsLegend")
+    if(input$powellStandardCompare){
+      data <- getResXtsData('powell','combined')
+      graph <- dygraph(data, main = "Lake Powell EOCY Elevation Percentiles") %>%
+        dySeries("X10.", label = paste(newRunName(), " 10th", sep=""), strokeWidth = 3, strokePattern = "dotted", color = "#244A9F") %>%
+        dySeries("X50.", label = paste(newRunName(), " 50th", sep=""), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("X90.", label = paste(newRunName(), " 90th", sep=""), strokeWidth = 3, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("X10..1", label = paste(oldRunName(), " 10th", sep=""), strokeWidth = 3, strokePattern = "dotted", color = "#CB9F5B") %>%
+        dySeries("X50..1", label = paste(oldRunName(), " 50th", sep=""), strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("X90..1", label = paste(oldRunName(), " 90th", sep=""), strokeWidth = 3, strokePattern = "dashed", color = "#CB9F5B") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+        dyLegend(labelsDiv = "powellStandardGraphXtsLegend")
+    }
+    else {
+      data <- getResXtsData('powell','new')
+      graph <- dygraph(data, main = "Lake Powell EOCY Elevation Percentiles") %>%
+        dySeries("10%", label = "10th", strokeWidth = 3, strokePattern = "dotted", color = "#244A9F") %>%
+        dySeries("50%", label = "50th", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("90%", label = "90th", strokeWidth = 3, strokePattern = "dashed", color = "#244A9F") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+        dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ return d.getFullYear();}') %>%
+        dyLegend(labelsDiv = "powellStandardGraphXtsLegend")
+    }
   })
   output$surpshortStandardGraphXts <- renderDygraph({
-    data <- getSurpShortXtsData()
-    graph <- dygraph(data, main = paste("Lower Basin Shortages by Tier:",runName(),"CRSS Run",sep=" ")) %>%
-      dySeries("shortPctg", label = "Shortage", strokeWidth = 3, color = "#244A9F") %>%
-      dySeries("surpPctg", label = "Surplus", strokeWidth = 3, color = "#CB9F5B") %>%
-      dySeries("short1Pctg", label = "Tier 1 Shortage", strokeWidth = 1, strokePattern = "dashed", color = "#152C5F") %>%
-      dySeries("short2Pctg", label = "Tier 2 Shortage", strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
-      dySeries("short3Pctg", label = "Tier 3 Shortage", strokeWidth = 1, strokePattern = "dashed", color = "#6580BB") %>%
-      dyOptions(drawGrid = TRUE) %>%
-      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
-      dyAxis(name="y", label="Percent of traces (%)") %>%
-      dyAxis(name="x", label="Year", 
-             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-             axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
-      dyLegend(labelsDiv = "surpshortStandardGraphXtsLegend")
+    if(input$surpShortStandardCompare){
+      data <- getSurpShortXtsData('combined')
+      graph <- dygraph(data, main = "Lower Basin Shortages by Tier") %>%
+        dySeries("shortPctg", label = paste(newRunName(), "Shortage",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("surpPctg", label = paste(newRunName(), "Surplus",sep=" "), strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("short1Pctg", label = paste(newRunName(), "Tier 1 Shortage",sep=" "), strokeWidth = 2, color = "#152C5F") %>%
+        dySeries("short2Pctg", label = paste(newRunName(), "Tier 2 Shortage",sep=" "), strokeWidth = 2, color = "#244A9F") %>%
+        dySeries("short3Pctg", label = paste(newRunName(), "Tier 3 Shortage",sep=" "), strokeWidth = 2, color = "#6580BB") %>%
+        dySeries("shortPctg.1", label = paste(oldRunName(), "Shortage",sep=" "), strokeWidth = 2, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("surpPctg.1", label = paste(oldRunName(), "Surplus",sep=" "), strokeWidth = 2, strokePattern = "dashed", color = "#CB9F5B") %>%
+        dySeries("short1Pctg.1", label = paste(oldRunName(), "Tier 1 Shortage",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#152C5F") %>%
+        dySeries("short2Pctg.1", label = paste(oldRunName(), "Tier 2 Shortage",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("short3Pctg.1", label = paste(oldRunName(), "Tier 3 Shortage",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#6580BB") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyAxis(name="y", label="Percent of traces (%)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
+        dyLegend(labelsDiv = "surpshortStandardGraphXtsLegend")
+    }
+    else {
+      data <- getSurpShortXtsData('new')
+      graph <- dygraph(data, main = "Lower Basin Shortages by Tier") %>%
+        dySeries("shortPctg", label = "Shortage", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("surpPctg", label = "Surplus", strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("short1Pctg", label = "Tier 1 Shortage", strokeWidth = 2, color = "#152C5F") %>%
+        dySeries("short2Pctg", label = "Tier 2 Shortage", strokeWidth = 2, color = "#244A9F") %>%
+        dySeries("short3Pctg", label = "Tier 3 Shortage", strokeWidth = 2, color = "#6580BB") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+        dyAxis(name="y", label="Percent of traces (%)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
+        dyLegend(labelsDiv = "surpshortStandardGraphXtsLegend")
+    }
   })
   output$elevsStandardGraphXts <- renderDygraph({
-    data <- getElevXtsData()
-    graph <- dygraph(data, main = paste("Reservoir Elevation Exceedance:",runName(),"CRSS Run",sep=" ")) %>%
-      dySeries("mead1075ElevExc", label = "Mead < 1,075", strokeWidth = 3, color = "#244A9F") %>%
-      dySeries("mead1025ElevExc", label = "Mead < 1,025", strokeWidth = 3, color = "#152C5F") %>%
-      dySeries("mead1000ElevExc", label = "Mead < 1,000", strokeWidth = 3, color = "#244A9F") %>%
-      dySeries("powl3490ElevExc", label = "Powell < 3,490", strokeWidth = 3, color = "#CB9F5B") %>%
-      dyOptions(drawGrid = TRUE) %>%
-      dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
-      dyAxis(name="y", label="Percent of traces (%)") %>%
-      dyAxis(name="x", label="Year", 
-             valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
-             axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
-      dyLegend(labelsDiv = "elevsStandardGraphXtsLegend")
+    if(input$elevsStandardCompare){
+      data <- getElevXtsData('combined')
+      graph <- dygraph(data, main = "Reservoir Elevation Exceedance") %>%
+        dySeries("mead1075ElevExc", label = paste(newRunName(), "Mead < 1,075",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("mead1025ElevExc", label = paste(newRunName(), "Mead < 1,025",sep=" "), strokeWidth = 3, color = "#152C5F") %>%
+        dySeries("mead1000ElevExc", label = paste(newRunName(), "Mead < 1,000",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("powl3490ElevExc", label = paste(newRunName(), "Powell < 3,490",sep=" "), strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("mead1075ElevExc.1", label = paste(oldRunName(), "Mead < 1,075",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("mead1025ElevExc.1", label = paste(oldRunName(), "Mead < 1,025",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#152C5F") %>%
+        dySeries("mead1000ElevExc.1", label = paste(oldRunName(), "Mead < 1,000",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("powl3490ElevExc.1", label = paste(oldRunName(), "Powell < 3,490",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#CB9F5B") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyAxis(name="y", label="Percent of traces (%)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
+        dyLegend(labelsDiv = "elevsStandardGraphXtsLegend")
+    }
+    else {
+      data <- getElevXtsData('new')
+      graph <- dygraph(data, main = "Reservoir Elevation Exceedance") %>%
+        dySeries("mead1075ElevExc", label = "Mead < 1,075", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("mead1025ElevExc", label = "Mead < 1,025", strokeWidth = 3, color = "#152C5F") %>%
+        dySeries("mead1000ElevExc", label = "Mead < 1,000", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("powl3490ElevExc", label = "Powell < 3,490", strokeWidth = 3, color = "#CB9F5B") %>%
+        dyOptions(drawGrid = TRUE) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
+        dyAxis(name="y", label="Percent of traces (%)") %>%
+        dyAxis(name="x", label="Year", 
+               valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
+               axisLabelFormatter = 'function(d){ date = new Date(d); return (date.getFullYear() - 1);}') %>%
+        dyLegend(labelsDiv = "elevsStandardGraphXtsLegend")
+    }
   })
 # GENERATE DOWNLOAD DATA BUTTON ON THE REPORTS TAB
   output$downloadMeadStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
-    content = function(filename) 
-    {write.csv(data.frame(Date=index(getResXtsData('Mead.Pool Elevation')),coredata(getResXtsData('Mead.Pool Elevation'))), filename,row.names = FALSE)}
+    content = function(filename) {
+      if(input$meadStandardCompare){
+        data <- getResXtsData('mead','combined')
+        names(data) <- c(paste(newRunName(),c("-10th","-50th","-90th"),sep=""),paste(oldRunName(),c("-10th","-50th","-90th"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }
+      else {
+        data <- getResXtsData('mead','new')
+        names(data) <- c(paste(newRunName(),c("-10th","-50th","-90th"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }
+    }
   )
   output$downloadPowellStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
-    content = function(filename) 
-    {write.csv(data.frame(Date=index(getResXtsData('Powell.Pool Elevation')),coredata(getResXtsData('Powell.Pool Elevation'))), filename,row.names = FALSE)}
+    content = function(filename) {
+      if(input$powellStandardCompare){
+        data <- getResXtsData('powell','combined')
+        names(data) <- c(paste(newRunName(),c("-10th","-50th","-90th"),sep=""),paste(oldRunName(),c("-10th","-50th","-90th"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }
+      else {
+        data <- getResXtsData('powell','new')
+        names(data) <- c(paste(newRunName(),c("-10th","-50th","-90th"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }
+    }
   )
   output$downloadSrShortStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
-    content = function(filename) 
-    {write.csv(data.frame(Date=index(getSurpShortXtsData()),coredata(getSurpShortXtsData())), filename,row.names = FALSE)}
+    content = function(filename){
+      if(input$surpShortStandardCompare){
+        data <- getSurpShortXtsData('combined')
+        names(data) <- c(paste(newRunName(),c("-Shortage","-Surplus","-Tier1 Shortage","-Tier2 Shortage","-Tier3 Shortage"),sep=""),
+                         paste(oldRunName(),c("-Shortage","-Surplus","-Tier1 Shortage","-Tier2 Shortage","-Tier3 Shortage"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }
+      else {
+        data <- getSurpShortXtsData('new')
+        names(data) <- c(paste(newRunName(),c("-Shortage","-Surplus","-Tier1 Shortage","-Tier2 Shortage","-Tier3 Shortage"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }      
+    }
   )
   output$downloadElevStandardData <- downloadHandler(
     filename = function() 
     {paste('temp',Sys.time(),'.csv', sep='')},
-    content = function(filename) 
-    {write.csv(data.frame(Date=index(getElevXtsData()),coredata(getElevXtsData())), filename,row.names = FALSE)}
+    content = function(filename) {
+      if(input$elevsStandardCompare){
+        data <- getElevXtsData('combined')
+        names(data) <- c(paste(newRunName(),c("-Mead LT 1075","-Mead LT 1025","-Mead LT 1000", "-Powell LT 3490"),sep=""),
+                         paste(oldRunName(),c("-Mead LT 1075","-Mead LT 1025","-Mead LT 1000", "-Powell LT 3490"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }
+      else {
+        data <- getElevXtsData('new')
+        names(data) <- c(paste(newRunName(),c("-Mead LT 1075","-Mead LT 1025","-Mead LT 1000", "-Powell LT 3490"),sep=""))
+        write.csv(data.frame(Date=index(data),coredata(data)), filename,row.names = FALSE) 
+      }      
+    }
   )
 }

@@ -22,8 +22,6 @@
 ############################################################################################
 load('oldMPPE.rds')
 load('newMPPE.rds')
-load('oldSystemConditions.rds')
-load('newSystemConditions.rds')
 load('standardResPlotData.rds')
 load('standardSurpShortPlotData.rds')
 load('standardMeadPlotData.rds')
@@ -65,38 +63,6 @@ rdfSlotToXTS <- function(rdf, slot)
   }
   names(rdfXTS) <- runNames
   rdfXTS
-}
-
-generate5YearTable <- function(meadZ, powellZ, powellQ)
-{
-  # Get Mead elevation tier percentages
-  srplus <- getArrayThresholdExceedance(meadZ,1145,'GTE')
-  short1 <- getArrayThresholdExceedance(meadZ,1075,'LTE')
-  icsSrp <- getArrayThresholdExceedance(meadZ,0,'GTE') - (srplus + short1)
-  short2 <- getArrayThresholdExceedance(meadZ,1050,'LT')
-  short3 <- getArrayThresholdExceedance(meadZ,1025,'LT')
-  allSht <- short1
-  short1 <- short1 - short2
-  short2 <- short2 - short3
-  # Get Powell elevation tier percentages
-  eqlBal <- getArrayThresholdExceedance(powellZ,3700,'LT')
-  uprBal <- getArrayThresholdExceedance(powellZ,3646,'LT')
-  midBal <- getArrayThresholdExceedance(powellZ,3575,'LTE')
-  lowBal <- getArrayThresholdExceedance(powellZ,3525,'LTE')
-  eqlBal <- eqlBal - uprBal
-  uprBal <- uprBal - midBal
-  midBal <- midBal - lowBal
-  # Get Powell flow volume tier percentages
-  powSum <- getTraceSum(powellQ, 'WY')
-  powGT823 <- getArrayThresholdExceedance(powSum,8230000,'GT')
-  powAT823 <- getArrayThresholdExceedance(powSum,8230000,'EQ')
-  powLT823 <- getArrayThresholdExceedance(powSum,8230000,'LT')
-  qData <- merge(powGT823,powAT823,powLT823)
-  zData <- merge(srplus,icsSrp,allSht,short1,short2,short3,eqlBal,uprBal,midBal,lowBal)
-  index(qData) <- index(zData)
-  data <- round(merge(zData,qData), digits=0)
-  data <- data.frame(coredata(data))
-  return(t(data))
 }
 
 ########################################################################################
@@ -281,226 +247,30 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
 #####################################################################################################################################
 # HARDCODED CRSS STANDARD PLOTS
 #####################################################################################################################################
-# FUNCTION TO BUILD THE RESERVOIR ELEVATION EXCEEDANCE PLOTS
-# buildResChart <- function (rawRDF, slotName, compareOld2New) {
-#   usbrBlue <- c("#152C5F", "#244A9F", "#6580BB")
-#   usbrSand <- c("#8E6F3F", "#CB9F5B", "#DABB8C")
-#   runName <- format(as.Date(rawRDF$meta$create_date),format="%b%Y")
-#   rdfXTS <- rdfSlotToXTS(rawRDF, slotName)
-#   rdfXtsDecVal <- getTraceMonthVal(rdfXTS,12)
-#   rdfXtsDecPctl <- getArrayPctl(rdfXtsDecVal,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   ggData <- data.frame(Date=index(rdfXtsDecPctl),coredata(rdfXtsDecPctl))
-#   ggChartResPctls <- ggplot(ggData, aes(x=Date)) + 
-#     geom_line(aes(y = X10., colour=paste(runName, "90th",sep=":")), size = 2, linetype = 3) + 
-#     geom_line(aes(y = X50., colour=paste(runName, "50th",sep=":")), size = 2, linetype = 1) + 
-#     geom_line(aes(y = X90., colour=paste(runName, "10th",sep=":")), size = 2, linetype = 2) +
-#     scale_colour_manual("", breaks = c(paste(runName, "10th",sep=":"), paste(runName, "50th",sep=":"), paste(runName, "90th",sep=":")), 
-#                         values = usbrBlue) +
-#     labs(title = paste(strsplit(slotName,"\\.")[[1]][1], " EOCY Elevation Exceedance Percentiles",sep = ""), 
-#          x = "Year", y = "Lake Elevation (feet above MSL)") +
-#     theme(text = element_text(size=20), panel.background = element_rect(fill = "white"), 
-#           panel.grid.major = element_line(colour = "gainsboro"),
-#           panel.border = element_rect(colour = "gainsboro", fill=NA)) 
-#   ggChartResPctls
-#   
-#   if (compareOld2New){
-#     # PROCESS RDF2
-#     rdfName2 <- 'oldMPPE.rdf'
-#     rawRDF2 <- read.rdf(rdfName2)
-#     runName2 <- format(as.Date(rawRDF2$meta$create_date),format="%b%Y")
-#     rdfXTS2 <- rdfSlotToXTS(rawRDF2, slotName)
-#     minYear <- format(min(index(rdfXtsDecVal)),format="%Y")
-#     rdfXtsDecVal2 <- getTraceMonthVal(rdfXTS2,12)
-#     rdfXtsDecPctl2 <- getArrayPctl(rdfXtsDecVal2,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#     ggData2 <- data.frame(Date=index(rdfXtsDecPctl2),coredata(rdfXtsDecPctl2))
-#     ggChartResPctls <- ggChartResPctls + 
-#       geom_line(aes(x = ggData2$Date, y = ggData2$X10., colour=paste(runName2, "90th",sep=":")), size = 2, linetype = 3) + 
-#       geom_line(aes(x = ggData2$Date, y = ggData2$X50., colour=paste(runName2, "50th",sep=":")), size = 2, linetype = 1) + 
-#       geom_line(aes(x = ggData2$Date, y = ggData2$X90., colour=paste(runName2, "10th",sep=":")), size = 2, linetype = 2) +
-#       scale_colour_manual("", breaks = c(paste(runName, "10th",sep=":"), paste(runName, "50th",sep=":"), paste(runName, "90th",sep=":"),
-#                                          paste(runName2, "10th",sep=":"), paste(runName2, "50th",sep=":"), paste(runName2, "90th",sep=":")),  
-#                           values =c(usbrBlue, usbrSand))
-#   }
-#   ggChartResPctls
-# }
-# THIS IS FOR THE SURPLUS SHORTAGE PERCENT EXCEEDANCE PLOTS
-# getSurpShortData <- function() {
-#   rdfName <- 'newSystemConditions.rdf'
-#   rawRDF <- read.rdf(rdfName)
-#   runName <- format(as.Date(rawRDF$meta$create_date),format="%b%Y")
-#   
-#   rdfXTSsurp <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBSurplusConditions')
-#   rdfXTSsurp <- rdfXTSsurp[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   surpPctg <- getArrayThresholdExceedance(rdfXTSsurp, 1, 'EQ')
-#   surpPctg <- data.frame(Date=index(surpPctg),coredata(surpPctg))
-#   
-#   rdfXTSshort1 <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBShortageStep1')
-#   rdfXTSshort1 <- rdfXTSshort1[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short1Pctg <- getArrayThresholdExceedance(rdfXTSshort1, 1, 'EQ')
-#   
-#   rdfXTSshort2 <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBShortageStep2')
-#   rdfXTSshort2 <- rdfXTSshort2[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short2Pctg <- getArrayThresholdExceedance(rdfXTSshort2, 1, 'EQ')
-#   
-#   rdfXTSshort3 <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBShortageStep3')
-#   rdfXTSshort3 <- rdfXTSshort3[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short3Pctg <- getArrayThresholdExceedance(rdfXTSshort3, 1, 'EQ')
-#   
-#   short1Pctg <- data.frame(Date=index(short1Pctg),coredata(short1Pctg))
-#   short2Pctg <- data.frame(Date=index(short2Pctg),coredata(short2Pctg))
-#   short3Pctg <- data.frame(Date=index(short3Pctg),coredata(short3Pctg))
-#   
-#   dTab <- merge(short1Pctg,short2Pctg,by="Date")
-#   dTab <- merge(dTab,short3Pctg,by="Date")
-#   dTab <- merge(dTab,surpPctg,by="Date")
-#   dTab
-# }
-getSurpShortXtsData <- function() {
-#   rdfName <- 'newSystemConditions.rdf'
-#   rawRDF <- read.rdf(rdfName)
-#   runName <- format(as.Date(newSysCondData$meta$create_date),format="%b%Y")
-#   
-#   surpPctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBSurplusConditions')
-#   surpPctg <- surpPctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   surpPctg <- getArrayThresholdExceedance(surpPctg, 1, 'EQ')
-# 
-#   shortPctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageConditions')
-#   shortPctg <- shortPctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   shortPctg <- getArrayThresholdExceedance(shortPctg, 1, 'EQ')
-#   
-#   short1Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep1')
-#   short1Pctg <- short1Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short1Pctg <- getArrayThresholdExceedance(short1Pctg, 1, 'EQ')
-#   
-#   short2Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep2')
-#   short2Pctg <- short2Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short2Pctg <- getArrayThresholdExceedance(short2Pctg, 1, 'EQ')
-#   
-#   short3Pctg <- rdfSlotToXTS(newSysCondData, 'SummaryOutputData.LBShortageStep3')
-#   short3Pctg <- short3Pctg[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short3Pctg <- getArrayThresholdExceedance(short3Pctg, 1, 'EQ')
-#   
-#   dTab <- merge(shortPctg,surpPctg)
-#   dTab <- merge(dTab,short1Pctg)
-#   dTab <- merge(dTab,short2Pctg)
-#   dTab <- merge(dTab,short3Pctg)
-  dTab <- standardSurpShortPlotData[[1]]
+getSurpShortXtsData <- function(run) {
+  if (run == 'new')
+    dTab <- standardSurpShortPlotData[[1]]
+  else
+    dTab <- merge(standardSurpShortPlotData[[1]],standardSurpShortPlotData[[2]])
   dTab
 }
-# buildSurpShortChart <- function() {
-#   rdfName <- 'newSystemConditions.rdf'
-#   rawRDF <- read.rdf(rdfName)
-#   runName <- format(as.Date(rawRDF$meta$create_date),format="%b%Y")
-#   
-#   rdfXTSsurp <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBSurplusConditions')
-#   rdfXTSsurp <- rdfXTSsurp[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   surpPctg <- getArrayThresholdExceedance(rdfXTSsurp, 1, 'EQ')
-#   surpPctg <- data.frame(Date=index(surpPctg),coredata(surpPctg))
-# 
-#   rdfXTSshort1 <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBShortageStep1')
-#   rdfXTSshort1 <- rdfXTSshort1[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short1Pctg <- getArrayThresholdExceedance(rdfXTSshort1, 1, 'EQ')
-#   
-#   rdfXTSshort2 <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBShortageStep2')
-#   rdfXTSshort2 <- rdfXTSshort2[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short2Pctg <- getArrayThresholdExceedance(rdfXTSshort2, 1, 'EQ')
-#   short2Pctg <- short2Pctg + short1Pctg
-#   
-#   rdfXTSshort3 <- rdfSlotToXTS(rawRDF, 'SummaryOutputData.LBShortageStep3')
-#   rdfXTSshort3 <- rdfXTSshort3[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   short3Pctg <- getArrayThresholdExceedance(rdfXTSshort3, 1, 'EQ')
-#   short3Pctg <- short3Pctg + short2Pctg
-#   
-#   short1Pctg <- data.frame(Date=index(short1Pctg),coredata(short1Pctg))
-#   short2Pctg <- data.frame(Date=index(short2Pctg),coredata(short2Pctg))
-#   short3Pctg <- data.frame(Date=index(short3Pctg),coredata(short3Pctg))
-#   
-#   ggChartShort <- ggplot() + 
-#     geom_area(aes(x = short3Pctg$Date, y = short3Pctg$coredata.short3Pctg., colour="Step 3 Shortage"), size = 1.5, fill="#6580BB", alpha=0.125) + 
-#     geom_area(aes(x = short2Pctg$Date, y = short2Pctg$coredata.short2Pctg., colour="Step 2 Shortage"), size = 1.5, fill="#244A9F", alpha=0.250) + 
-#     geom_area(aes(x = short1Pctg$Date, y = short1Pctg$coredata.short1Pctg., colour="Step 1 Shortage"), size = 1.5, fill="#152C5F", alpha=0.500) +
-#     geom_line(aes(x = surpPctg$Date, y = surpPctg$coredata.surpPctg., colour="Surplus"), size = 2, linetype = 1) +
-#     scale_x_date(labels = date_format("%Y")) + 
-#     scale_colour_manual("", breaks = c("Step 1 Shortage","Step 2 Shortage","Step 3 Shortage", "Surplus"), values =c("#152C5F","#244A9F","#6580BB", "#CB9F5B")) + 
-#     ggtitle(bquote(atop("Lower Basin Shortages by Tier", atop(.(paste(runName, " CRSS Run",sep="")), "")))) +
-#     labs(x = "Year", y = "Percent of traces (%)") +
-#     theme(text = element_text(size=20), panel.background = element_rect(fill = "white"), 
-#           panel.grid.major = element_line(colour = "gainsboro"),
-#           panel.border = element_rect(colour = "gainsboro", fill=NA)) 
-#   ggChartShort
-# }
-# THIS IS FOR THE ELEVATION THRESHOLD PLOTS
-# getElevData <- function(mppeRDF) {
-#   rawRDF <- mppeRDF
-#   runName <- format(as.Date(rawRDF$meta$create_date),format="%b%Y")
-#   rdfXTS <- rdfSlotToXTS(rawRDF, 'Mead.Pool Elevation')
-#   mead1075ElevExc <- getArrayThresholdExceedance(getTraceMonthVal(rdfXTS,12), 1075, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1075ElevExc <- data.frame(Date=index(mead1075ElevExc),coredata(mead1075ElevExc))
-#   mead1025ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1025, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1025ElevExc <- data.frame(Date=index(mead1025ElevExc),coredata(mead1025ElevExc))
-#   mead1000ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1000, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1000ElevExc <- data.frame(Date=index(mead1000ElevExc),coredata(mead1000ElevExc))
-#   rdfXTS <- rdfSlotToXTS(rawRDF, 'Powell.Pool Elevation')
-#   powl3490ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 3490, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   powl3490ElevExc <- data.frame(Date=index(powl3490ElevExc),coredata(powl3490ElevExc))
-#   
-#   dTab <- merge(mead1075ElevExc,mead1025ElevExc,by="Date")
-#   dTab <- merge(dTab,mead1000ElevExc,by="Date")
-#   dTab <- merge(dTab,powl3490ElevExc,by="Date")
-#   dTab
-# }
-getResXtsData <- function(resName){
-#   rdfName <- 'newMPPE.rdf'
-#   rawRDF <- read.rdf(rdfName)
-  if (resName == "mead")
-    rdfXts <- standardMeadPlotData[[1]]
+getResXtsData <- function(resName, run){
+  if (resName == 'mead')
+    if (run == 'new')
+      rdfXts <- standardMeadPlotData[[1]]
+    else
+      rdfXts <- merge(standardMeadPlotData[[1]],standardMeadPlotData[[2]])
   else
-    rdfXts <- standardPowellPlotData[[1]]
-#   rdfXts <- getTraceMonthVal(rdfXts,12)
-#   rdfXts <- getArrayPctl(rdfXts,c(0.1,0.5,0.9))[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
+    if (run == 'new')
+      rdfXts <- standardPowellPlotData[[1]]
+    else
+      rdfXts <- merge(standardPowellPlotData[[1]],standardPowellPlotData[[2]])
   rdfXts
 }
-getElevXtsData <- function() {
-#   rdfName <- 'newMPPE.rdf'
-#   rawRDF <- read.rdf(rdfName)
-#   runName <- format(as.Date(newMppeData$meta$create_date),format="%b%Y")
-#   rdfXTS <- rdfSlotToXTS(newMppeData, 'Mead.Pool Elevation')
-#   mead1075ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1075, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1025ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1025, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1000ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1000, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   rdfXTS <- rdfSlotToXTS(newMppeData, 'Powell.Pool Elevation')
-#   powl3490ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 3490, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-
-#   dTab <- merge(mead1075ElevExc,mead1025ElevExc)
-#   dTab <- merge(dTab,mead1000ElevExc)
-#   dTab <- merge(dTab,powl3490ElevExc)
-  dTab <- standardResPlotData[[1]]
+getElevXtsData <- function(run) {
+  if (run == 'new')
+    dTab <- standardResPlotData[[1]]
+  else
+    dTab <- merge(standardResPlotData[[1]],standardResPlotData[[2]])
   dTab
 }
-# buildElevChart <- function(mppeRDF) {
-#   rawRDF <- mppeRDF
-#   runName <- format(as.Date(rawRDF$meta$create_date),format="%b%Y")
-#   rdfXTS <- rdfSlotToXTS(rawRDF, 'Mead.Pool Elevation')
-#   mead1075ElevExc <- getArrayThresholdExceedance(getTraceMonthVal(rdfXTS,12), 1075, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1075ElevExc <- data.frame(Date=index(mead1075ElevExc),coredata(mead1075ElevExc))
-#   mead1025ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1025, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1025ElevExc <- data.frame(Date=index(mead1025ElevExc),coredata(mead1025ElevExc))
-#   mead1000ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 1000, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   mead1000ElevExc <- data.frame(Date=index(mead1000ElevExc),coredata(mead1000ElevExc))
-#   rdfXTS <- rdfSlotToXTS(rawRDF, 'Powell.Pool Elevation')
-#   powl3490ElevExc <- getArrayThresholdExceedance(getTraceMin(rdfXTS,"CY"), 3490, "LT")[paste("/",as.numeric(format(Sys.Date(), "%Y")) + 10,sep="")]
-#   powl3490ElevExc <- data.frame(Date=index(powl3490ElevExc),coredata(powl3490ElevExc))
-#   
-#   ggChartElevThresh <- ggplot() + 
-#     geom_line(aes(x = mead1075ElevExc$Date, y = mead1075ElevExc$coredata.mead1075ElevExc., colour="LB Shortage"), size = 1.5, linetype = 1) + 
-#     geom_line(aes(x = mead1025ElevExc$Date, y = mead1025ElevExc$coredata.mead1025ElevExc., colour="Mead < 1,025'"), size = 1.5, linetype = 1) + 
-#     geom_line(aes(x = mead1000ElevExc$Date, y = mead1000ElevExc$coredata.mead1000ElevExc., colour="Mead < 1,000'"), size = 1.5, linetype = 1) + 
-#     geom_line(aes(x = powl3490ElevExc$Date, y = powl3490ElevExc$coredata.powl3490ElevExc., colour="Powell < 3,490'"), size = 1.5, linetype = 1) + 
-#     scale_colour_manual("", breaks = c("LB Shortage","Mead < 1,025'","Mead < 1,000'","Powell < 3,490'"), values =c("#244A9F","#152C5F","#6580BB","#CB9F5B")) + 
-#     ggtitle(bquote(atop("Reservoir Elevation Exceedance", atop(.(paste(runName, " CRSS Run",sep="")), "")))) +
-#     labs(x = "Year", y = "Percent of traces (%)") +
-#     theme(text = element_text(size=20), panel.background = element_rect(fill = "white"), 
-#           panel.grid.major = element_line(colour = "gainsboro"),
-#           panel.border = element_rect(colour = "gainsboro", fill=NA)) 
-#   ggChartElevThresh
-# }
