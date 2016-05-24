@@ -359,7 +359,7 @@ serverProcessing <- function(input, output, clientData, session){
         dySeries("X50..1", label = paste(oldRunName(), " 50th", sep=""), strokeWidth = 3, color = "#CB9F5B") %>%
         dySeries("X90..1", label = paste(oldRunName(), " 90th", sep=""), strokeWidth = 3, strokePattern = "dashed", color = "#CB9F5B") %>%
         dyOptions(drawGrid = TRUE) %>%
-        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
         dyAxis(name="x", label="Year", 
                valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
@@ -393,7 +393,7 @@ serverProcessing <- function(input, output, clientData, session){
         dySeries("X50..1", label = paste(oldRunName(), " 50th", sep=""), strokeWidth = 3, color = "#CB9F5B") %>%
         dySeries("X90..1", label = paste(oldRunName(), " 90th", sep=""), strokeWidth = 3, strokePattern = "dashed", color = "#CB9F5B") %>%
         dyOptions(drawGrid = TRUE) %>%
-        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Lake Elevation (feet above MSL)") %>%
         dyAxis(name="x", label="Year", 
                valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
@@ -430,7 +430,7 @@ serverProcessing <- function(input, output, clientData, session){
         dySeries("short2Pctg.1", label = paste(oldRunName(), "Tier 2 Shortage",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
         dySeries("short3Pctg.1", label = paste(oldRunName(), "Tier 3 Shortage",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#6580BB") %>%
         dyOptions(drawGrid = TRUE) %>%
-        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Percent of traces (%)") %>%
         dyAxis(name="x", label="Year", 
                valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
@@ -467,7 +467,7 @@ serverProcessing <- function(input, output, clientData, session){
         dySeries("mead1000ElevExc.1", label = paste(oldRunName(), "Mead < 1,000",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
         dySeries("powl3490ElevExc.1", label = paste(oldRunName(), "Powell < 3,490",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#CB9F5B") %>%
         dyOptions(drawGrid = TRUE) %>%
-        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.5) %>%
+        dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Percent of traces (%)") %>%
         dyAxis(name="x", label="Year", 
                valueFormatter = 'function(d){ date = new Date(d); return date.getFullYear(); }', 
