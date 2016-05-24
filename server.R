@@ -116,7 +116,7 @@ serverProcessing <- function(input, output, clientData, session){
   })
   # VALIDATE SELECTED MODEL
   validateSelectedModel <- reactive({
-    validate(need(selectedModelName() != "", 'Select or upload an RDF...'))
+    validate(need(selectedModelName() != "", 'Select a Run...'))
   })
   # VALIDATE SELECTED SLOT
   validateSelectedSlot <- reactive({
@@ -365,7 +365,6 @@ serverProcessing <- function(input, output, clientData, session){
                valueFormatter = 'function(d){date = new Date(d); return date.getFullYear();}', 
                axisLabelFormatter = 'function(d){date = new Date(d); return (date.getFullYear()-1);}') %>%
         dyLegend(labelsDiv = "meadStandardGraphXtsLegend")
-      #c("#8E6F3F", "#CB9F5B", "#DABB8C")
     }
     else {
       data <- getResXtsData('mead','new')
@@ -458,14 +457,14 @@ serverProcessing <- function(input, output, clientData, session){
     if(input$elevsStandardCompare){
       data <- getElevXtsData('combined')
       graph <- dygraph(data, main = "Reservoir Elevation Exceedance") %>%
-        dySeries("mead1075ElevExc", label = paste(newRunName(), "Mead < 1,075",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
-        dySeries("mead1025ElevExc", label = paste(newRunName(), "Mead < 1,025",sep=" "), strokeWidth = 3, color = "#152C5F") %>%
-        dySeries("mead1000ElevExc", label = paste(newRunName(), "Mead < 1,000",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
-        dySeries("powl3490ElevExc", label = paste(newRunName(), "Powell < 3,490",sep=" "), strokeWidth = 3, color = "#CB9F5B") %>%
-        dySeries("mead1075ElevExc.1", label = paste(oldRunName(), "Mead < 1,075",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
-        dySeries("mead1025ElevExc.1", label = paste(oldRunName(), "Mead < 1,025",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#152C5F") %>%
-        dySeries("mead1000ElevExc.1", label = paste(oldRunName(), "Mead < 1,000",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
-        dySeries("powl3490ElevExc.1", label = paste(oldRunName(), "Powell < 3,490",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#CB9F5B") %>%
+        dySeries("mead1075ElevExc", label = paste(newRunName(), "Mead < 1,075 in any month",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("mead1025ElevExc", label = paste(newRunName(), "Mead < 1,025 in any month",sep=" "), strokeWidth = 3, color = "#152C5F") %>%
+        dySeries("mead1000ElevExc", label = paste(newRunName(), "Mead < 1,000 in any month",sep=" "), strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("powl3490ElevExc", label = paste(newRunName(), "Powell < 3,490 in any month",sep=" "), strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("mead1075ElevExc.1", label = paste(oldRunName(), "Mead < 1,075 in any month",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("mead1025ElevExc.1", label = paste(oldRunName(), "Mead < 1,025 in any month",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#152C5F") %>%
+        dySeries("mead1000ElevExc.1", label = paste(oldRunName(), "Mead < 1,000 in any month",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#244A9F") %>%
+        dySeries("powl3490ElevExc.1", label = paste(oldRunName(), "Powell < 3,490 in any month",sep=" "), strokeWidth = 1, strokePattern = "dashed", color = "#CB9F5B") %>%
         dyOptions(drawGrid = TRUE) %>%
         dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 0.25) %>%
         dyAxis(name="y", label="Percent of traces (%)") %>%
@@ -477,10 +476,10 @@ serverProcessing <- function(input, output, clientData, session){
     else {
       data <- getElevXtsData('new')
       graph <- dygraph(data, main = "Reservoir Elevation Exceedance") %>%
-        dySeries("mead1075ElevExc", label = "Mead < 1,075", strokeWidth = 3, color = "#244A9F") %>%
-        dySeries("mead1025ElevExc", label = "Mead < 1,025", strokeWidth = 3, color = "#152C5F") %>%
-        dySeries("mead1000ElevExc", label = "Mead < 1,000", strokeWidth = 3, color = "#244A9F") %>%
-        dySeries("powl3490ElevExc", label = "Powell < 3,490", strokeWidth = 3, color = "#CB9F5B") %>%
+        dySeries("mead1075ElevExc", label = "Mead < 1,075 in any month", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("mead1025ElevExc", label = "Mead < 1,025 in any month", strokeWidth = 3, color = "#152C5F") %>%
+        dySeries("mead1000ElevExc", label = "Mead < 1,000 in any month", strokeWidth = 3, color = "#244A9F") %>%
+        dySeries("powl3490ElevExc", label = "Powell < 3,490 in any month", strokeWidth = 3, color = "#CB9F5B") %>%
         dyOptions(drawGrid = TRUE) %>%
         dyHighlight(highlightCircleSize = 5, highlightSeriesBackgroundAlpha = 1.0) %>%
         dyAxis(name="y", label="Percent of traces (%)") %>%
@@ -557,11 +556,4 @@ serverProcessing <- function(input, output, clientData, session){
       }      
     }
   )
-#   output$downloadMeadChart <- downloadHandler(
-#     filename = function() 
-#     {paste('MeadChart.html', sep='')},
-#     content = function(filename) {
-#       htmlwidgets::saveWidget(dygraphOutput("meadStandardGraphXts"),'MeadChart.html')
-#     }
-#   )
 }

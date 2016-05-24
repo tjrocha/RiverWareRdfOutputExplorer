@@ -28,8 +28,6 @@ source('global.R')
 ############################################################################################
 dbHeader <- dashboardHeader(
   title=""
-#  dropdownMenuOutput("rdfInfoMenu"),
-#  dropdownMenuOutput("slotInfoMenu")
 )
 dbHeader$children[[2]]$children <-  tags$a(href='http://www.usbr.gov/',tags$img(src='logo.png',height='38',width='200'))
 ############################################################################################
@@ -37,15 +35,10 @@ dbHeader$children[[2]]$children <-  tags$a(href='http://www.usbr.gov/',tags$img(
 ############################################################################################
 dbSidebar <- dashboardSidebar(
   # DEFINE SIDEBAR ITEMS
-#   uiOutput("selectModelName"),
-#   uiOutput("resettableFileInput"),
-#   uiOutput("selectSlotName"),
   sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home")),
     menuItem("Report", tabName = "report", icon = icon("table")),
     menuItem("Explore", tabName = "explore", icon = icon("area-chart")),
-#    menuItem("RDF Tree", tabName = "tree", icon = icon("tree")),
-#    menuItem("Reports", tabName = "reports", icon = icon("cogs")),
     menuItem("Source Code", icon = icon("code"), href = "https://github.com/tjrocha/RiverWareRdfOutputExplorer")
   )
 )
@@ -54,7 +47,7 @@ dbSidebar <- dashboardSidebar(
 ############################################################################################
 homeTab <- tabItem(
   tabName = "home",
-  h1("RiverWare RDF Output Explorer: CRSS Version"),
+  h1("CRSS Output Explorer"),
   fluidRow(
     tags$em(
     "BETA VERSION STATEMENT: This data exploration tool is intended for use by U.S. Bureau of Reclamation ",
@@ -67,22 +60,13 @@ homeTab <- tabItem(
     br(),br(),
     box(
       h2("Instructions"),
-      "1. Select a model from the top-most drop down box or click on 'Choose File' to select and open ",
-      "an RDF file. The current file size limit is 30MB while in the beta testing phase. ",
-      "Click on the ",
-      icon("bars"),
-      " icon on the top banner on mobile to show the selection menu.",
-      br(),br(),
-      "2. Once a model has been selected, another drop down box will be populated with the slot names ",
-      "present in the selected model RDF file. You may click on the drop-down box to specify a slot ",
-      "to select or you may type in partial names to filter the available slots in the list. ",
-      "The drop-down box may take a few seconds to generate.",
-      br(),br(),
-      "3. Once a model and a slot has been selected, you may now view graphs and data in their respective ",
-      "sections via the sidebar. Information about your selected RDF file and slot are shown by clicking ",
-      "on the ",
-      icon("envelope"),
-      " icons at the top right of the window. You may change your selections at any time. ",
+      "1. The typical graphs that are generated for CRSS runs are shown in the Report ",
+      icon("table"),
+      " tab.",
+      br(),
+      "2. You may click on the Explore ",
+      icon("area-chart"),
+      " tab to select specific CRSS runs and outputs to graph, tabulate, and analyze.", 
       br(),br()
     ),
     box(
@@ -101,7 +85,7 @@ homeTab <- tabItem(
       "projections and are subject to change as actual hydrology, operations, and forecasts diverge ",
       "from those used to produce specific model projections. ",
       br(),br(),
-      "This interface allows users to query, subset, view, and plot RiverWare RDF model outputs. ",
+      "This dashboard allows users to query, subset, view, and plot RiverWare model outputs. ",
       "This tool is primarily meant to support U.S. Bureau of Reclamation modeling and analysis ",
       "efforts with the Colorado River Simulation ",
       "System models. ",
@@ -133,6 +117,18 @@ homeTab <- tabItem(
 ############################################################################################
 exploreTab <- tabItem(
   tabName = "explore",
+  h2("Instructions"),
+  "1. Select a model run from the drop down box on the left-hand-side.",
+  br(),
+  "2. Once a model run has been selected, another drop down box will be populated with the slot names ",
+  "present in the selected model run. You may click on the drop-down box to specify a slot ",
+  "to select or you may type in partial names to filter the available slots in the list. ",
+  "The drop-down box may take a few seconds to generate.",
+  br(),
+  "3. Once a run and a slot has been selected, you may now view graphs and data in the page below. ",
+  "Note that it takes ~4 seconds to populate for the typical CRSS run with 107 traces and ",
+  "~75 seconds for the occasional run with 3,210 traces",
+  br(),br(),
   fluidRow(
     box(
       uiOutput("selectModelName")
@@ -145,7 +141,7 @@ exploreTab <- tabItem(
   h2("Graphs & Data"),
   "Notes:",
   br(),
-  "1. Graphs shown below are based on the selected model and slot on the sidebar menu. ",
+  "1. Graphs shown below are based on the selected Run and Slot on the top menu. ",
   br(),
   "2. Some plots have interactive elements while some do not. ",
   br(),br(),
@@ -195,7 +191,7 @@ exploreTab <- tabItem(
   h2("Data Table"),
   "Notes:",
   br(),
-  "1. Data shown below is based on the selected model and slot on the sidebar menu. ",
+  "1. Graphs shown below are based on the selected Run and Slot on the top menu. ",
   br(),
   "2. Clicking on the Download Data button will save the entire contents of the table as a ",
   "comma-separated-variables (CSV) file on your local machine. ",
@@ -289,8 +285,6 @@ userInterface <- dashboardPage(
       homeTab,
       reportTab,
       exploreTab
-#      treeTab,
-#      reportsTab
     )
   )
 )

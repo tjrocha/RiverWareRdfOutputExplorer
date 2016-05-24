@@ -245,7 +245,7 @@ getArrayThresholdExceedance <- function(rdfXTS, valueIn, comparison)
 
 
 #####################################################################################################################################
-# HARDCODED CRSS STANDARD PLOTS
+# HARDCODED CRSS DATA FUNCTIONS
 #####################################################################################################################################
 getSurpShortXtsData <- function(run) {
   if (run == 'new')
